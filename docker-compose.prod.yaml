@@ -15,14 +15,14 @@ services:
     #=========================
 
     client-gateway:
-        build: ./client-gateway
+        build:
+            context: ./client-gateway
+            dockerfile: dockerfile.prod
+        image: client-gateway-prod
         ports:
-            - ${CLIENT_GATEWAY_PORT}:3000
-        volumes:
-            - ./client-gateway/src:/usr/src/app/src
-        command: npm run start:dev
+            - ${CLIENT_GATEWAY_PORT}:${CLIENT_GATEWAY_PORT}
         environment:
-            - PORT=3000
+            - PORT=${CLIENT_GATEWAY_PORT}
             - NATS_SERVERS=nats://nats-server:4222
 
     # ========================
@@ -30,12 +30,12 @@ services:
     #=========================
 
     products-ms:
-        build: ./products-ms
-        volumes:
-            - ./products-ms/src:/usr/src/app/src
-        command: npm run start:dev
+        build:
+            context: ./products-ms
+            dockerfile: dockerfile.prod
+        image: products-ms
         environment:
-            - PORT=3001
+            - PORT=3000
             - NATS_SERVERS=nats://nats-server:4222
             - DATABASE_URL=file:./dev.db
 
@@ -44,46 +44,47 @@ services:
     #=========================
 
     orders-ms:
-        depends_on:
-            orders-db:
-                condition: service_healthy
-        build: ./orders-ms
-        volumes:
-            - ./orders-ms/src:/usr/src/app/src
-        command: npm run start:dev
+        # depends_on:
+        #     orders-db:
+        #         condition: service_healthy
+        build:
+            context: ./orders-ms
+            dockerfile: dockerfile.prod
+            args:
+                - ORDERS_DB_URL=${ORDERS_MS_DB}
+        image: orders-ms
         environment:
-            - PORT=3002
-            - DATABASE_URL=postgresql://postgres:123456@orders-db:5432/ordersdb?schema=public
+            - PORT=3000
+            - DATABASE_URL=${ORDERS_MS_DB}
             - NATS_SERVERS=nats://nats-server:4222
 
-    orders-db:
-        container_name: orders_database
-        image: postgres:15.3
-        restart: always
-        volumes:
-            - ./postgres:/var/lib/postgresql/data
-        ports:
-            - 6543:5432
-        healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres -d ordersdb'"]
-            interval: 2s
-            timeout: 3s
-            retries: 10
-        environment:
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=123456
-            - POSTGRES_DB=ordersdb
+    # orders-db:
+    #     container_name: orders_database
+    #     image: postgres:15.3
+    #     restart: always
+    #     volumes:
+    #         - ./postgres:/var/lib/postgresql/data
+    #     ports:
+    #         - 6543:5432
+    #     healthcheck:
+    #         test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres -d ordersdb'"]
+    #         interval: 2s
+    #         timeout: 3s
+    #         retries: 10
+    #     environment:
+    #         - POSTGRES_USER=postgres
+    #         - POSTGRES_PASSWORD=123456
+    #         - POSTGRES_DB=ordersdb
 
     # ========================
     # Payments MS
     #=========================
 
     payments-ms:
-        container_name: payments-ms
-        build: ./payments-ms
-        volumes:
-            - ./payments-ms/src:/usr/src/app/src
-        command: npm run start:dev
+        build:
+            context: ./payments-ms
+            dockerfile: dockerfile.prod
+        image: payments-ms
         ports:
             - ${PAYMENTS_MS_PORT}:${PAYMENTS_MS_PORT}
         environment:
@@ -99,11 +100,11 @@ services:
     #=========================
 
     auth-ms:
-        container_name: auth-ms
-        build: ./auth-ms
-        volumes:
-            - ./auth-ms/src:/usr/src/app/src
-        command: npm run start:dev
+        #container_name: auth-ms
+        build:
+            context: ./auth-ms
+            dockerfile: dockerfile.prod
+        image: auth-ms
         environment:
             - PORT=3004
             - NATS_SERVERS=nats://nats-server:4222
