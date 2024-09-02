@@ -83,3 +83,21 @@ kubectl get secret <nombre> -o yaml > <nombre>.yml
 ```
 kubectl create -f <nombre>.yml
 ```
+
+## Crear Secret
+
+```
+kubectl create secret docker-registry gcr-json-key --docker-server=servidor --docker-username=_json_key --docker-password="$(cat 'ruta_del_archivo/en_tu/computador')" --docker-email=correo_usado_en_gcp
+```
+
+## Actualizar
+
+```
+kubectl patch serviceaccounts default -p '{ "imagePullSecrets": [{ "name":"gcr-json-key" }] }'
+```
+
+## Rollback o levantar de nuevo el cluster
+
+```
+kubectl rollout restart deployment
+```

@@ -18,7 +18,7 @@ spec:
         app: client-gateway
     spec:
       containers:
-      - image: southamerica-east1-docker.pkg.dev/microservicios-fh-433218/imagen-registro/client-gateway-prod
+      - image: southamerica-east1-docker.pkg.dev/microservicios-fh-433218/imagen-registro/client-gateway
         name: client-gateway-prod
         resources: {}
 status: {}
